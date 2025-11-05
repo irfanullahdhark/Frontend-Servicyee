@@ -2,9 +2,8 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
-import { useJsApiLoader } from "@react-google-maps/api";
+import { useLoadScript } from "@react-google-maps/api";
 
-// ✅ Use all libraries you might need across the app
 const libraries = ["drawing", "places"] as (
   | "drawing"
   | "places"
@@ -12,6 +11,7 @@ const libraries = ["drawing", "places"] as (
 
 interface GoogleMapsContextValue {
   isLoaded: boolean;
+  loadError?: Error | null;
 }
 
 const GoogleMapsContext = createContext<GoogleMapsContextValue | null>(null);
@@ -19,14 +19,14 @@ const GoogleMapsContext = createContext<GoogleMapsContextValue | null>(null);
 export const GoogleMapsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries,
-    id: "google-maps-script-loader", // ✅ make sure all use the same ID
+    id: "google-maps-script-loader", // consistent ID to avoid duplicates
   });
 
   return (
-    <GoogleMapsContext.Provider value={{ isLoaded }}>
+    <GoogleMapsContext.Provider value={{ isLoaded, loadError }}>
       {children}
     </GoogleMapsContext.Provider>
   );

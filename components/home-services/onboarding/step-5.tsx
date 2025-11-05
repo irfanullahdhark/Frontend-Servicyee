@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FaRegStar, FaStar } from 'react-icons/fa';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -22,6 +22,9 @@ export default function ReviewRequest() {
   const router = useRouter();
   const [currentStep] = useState(2);
   const businessName = 'Servicyee';
+    // Get service Id
+  const params = useSearchParams()
+  const serviceId = params.get('id')
 
   const [emails, setEmails] = useState(['']);
   const [isPending] = useTransition();
@@ -95,10 +98,13 @@ export default function ReviewRequest() {
   };
 
   const handleNext = () => {
+    if (serviceId) {
+      router.back()
+    }
     router.push(`/home-services/dashboard/services/step-6`);
   };
 
-  
+
 
   const reviewLink = typeof window !== 'undefined' && userId
     ? `${window.location.origin}/home-services/services/step-6/${userId}`
@@ -106,12 +112,14 @@ export default function ReviewRequest() {
 
   return (
     <div className="">
-      <ProgressBar
-        currentStep={currentStep}
-        totalSteps={ONBOARDING_STEPS.length}
-        steps={ONBOARDING_STEPS}
-        className="mb-8"
-      />
+      {!serviceId && (
+        <ProgressBar
+          currentStep={currentStep}
+          totalSteps={ONBOARDING_STEPS.length}
+          steps={ONBOARDING_STEPS}
+          className="mb-8"
+        />
+      )}
 
       <div className=" dark:bg-gray-900 text-gray-800 dark:text-white text-[13px]">
         <div className="max-w-6xl mx-auto">
@@ -228,7 +236,7 @@ export default function ReviewRequest() {
         </div>
 
         {/* Navigation Buttons */}
-       <div className="fixed bottom-6 right-6 flex gap-4 text-[13px] ">
+        <div className="fixed bottom-6 right-6 flex gap-4 text-[13px] ">
           <button
             type="button"
             onClick={() => router.back()}

@@ -2,11 +2,12 @@
 
 import { useSidebar } from "@/components/providers/context/SidebarContext";
 import AppHeader from "@/components/navigation/ProfessionalLayout/AppHeader";
-import AppSidebar from "@/components/navigation/ProfessionalLayout/AppSidebar";
+const AppSidebar = dynamic(() => import("@/components/navigation/ProfessionalLayout/AppSidebar"), { ssr: false });
 import Header from "@/components/navigation/header";
 import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Footer from "@/components/navigation/Footer";
+import dynamic from "next/dynamic";
 
 export default function ConditionalLayout({
   children,

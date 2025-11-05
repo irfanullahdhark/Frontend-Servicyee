@@ -279,7 +279,17 @@ export default function CustomerRequests() {
           ))}
         </div>
 
+
       </div>
+      <div className="px-6">
+        <Link
+          href="/home-services/dashboard/opportunities"
+          className="text-[#0077B6] font-medium px-4 py-2 rounded-lg hover:bg-[#E0F2FF] transition-colors duration-200"
+        >
+          Opportunities
+        </Link>
+      </div>
+
     </div>
   );
 }

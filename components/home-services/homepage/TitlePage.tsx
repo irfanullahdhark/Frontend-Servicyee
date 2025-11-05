@@ -24,7 +24,7 @@ const calculateSimilarity = (a: string, b: string): number => {
 const MOCK_PROFESSIONALS = [
   {
     id: "1",
-    company: "John's Plumbing", // Changed from name to company
+    company: "John's Plumbing",
     service: "Plumbing",
     rating: 4.8,
     services: ["Pipe Repair", "Leak Fixing", "Faucet Installation"],
@@ -38,11 +38,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Licensed plumbing services with 10 years of experience in residential and commercial properties.",
-    imageUrl: "/assets/home-service/service (1).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (1).jpg",
   },
   {
     id: "2",
-    company: "Electric Solutions", // Changed from name to company
+    company: "Electric Solutions",
     service: "Electrical",
     rating: 4.5,
     services: ["Wiring", "Outlet Installation", "Circuit Breaker"],
@@ -56,11 +56,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Certified electricians providing safe and efficient electrical solutions.",
-    imageUrl: "/assets/home-service/service (2).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (2).jpg",
   },
   {
     id: "3",
-    company: "Clean Home Services", // Changed from name to company
+    company: "Clean Home Services",
     service: "Cleaning",
     rating: 4.9,
     services: ["Deep Cleaning", "Carpet Cleaning", "Window Washing"],
@@ -74,11 +74,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Premium cleaning services using eco-friendly products and techniques.",
-    imageUrl: "/assets/home-service/service (3).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (3).jpg",
   },
   {
     id: "4",
-    company: "Quick Fix Handyman", // Changed from name to company
+    company: "Quick Fix Handyman",
     service: "Handyman",
     rating: 4.3,
     services: ["Furniture Assembly", "Shelving", "Minor Repairs"],
@@ -92,11 +92,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Reliable handyman services for all your home maintenance needs.",
-    imageUrl: "/assets/home-service/service (4).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (4).jpg",
   },
   {
     id: "5",
-    company: "Green Thumb Landscaping", // Changed from name to company
+    company: "Green Thumb Landscaping",
     service: "Landscaping",
     rating: 4.7,
     services: ["Lawn Care", "Tree Trimming", "Garden Design"],
@@ -110,11 +110,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Professional landscaping services creating beautiful outdoor spaces.",
-    imageUrl: "/assets/home-service/service (5).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (5).jpg",
   },
   {
     id: "6",
-    company: "Green World", // Changed from name to company
+    company: "Green World",
     service: "Landscaping",
     rating: 4.7,
     services: ["Lawn Care", "Tree Trimming", "Garden Design"],
@@ -128,11 +128,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Sustainable landscaping solutions with native plants and eco-friendly practices.",
-    imageUrl: "/assets/home-service/service (1).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (1).jpg",
   },
   {
     id: "7",
-    company: "Green and Clean Globe", // Changed from name to company
+    company: "Green and Clean Globe",
     service: "Landscaping",
     rating: 4.7,
     services: ["Lawn Care", "Tree Trimming", "Garden Design"],
@@ -146,11 +146,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Full-service landscaping and garden maintenance with a focus on sustainability.",
-    imageUrl: "/assets/home-service/service (2).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (2).jpg",
   },
   {
     id: "8",
-    company: "Clark Construction", // Changed from name to company
+    company: "Clark Construction",
     service: "Roofing",
     rating: 4.7,
     services: ["Roof installation", "Roof Repairing", "Roof Maintenance"],
@@ -164,11 +164,11 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Full-service landscaping and garden maintenance with a focus on sustainability.",
-    imageUrl: "/assets/home-service/service (5).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (5).jpg",
   },
   {
     id: "9",
-    company: "Brand Construction", // Changed from name to company
+    company: "Brand Construction",
     service: "Roofing",
     rating: 4.7,
     services: ["Roof installation", "Roof Repairing", "Roof Maintenance"],
@@ -182,7 +182,7 @@ const MOCK_PROFESSIONALS = [
     status: "Available",
     description:
       "Full-service landscaping and garden maintenance with a focus on sustainability.",
-    imageUrl: "/assets/home-service/service (3).jpg", // Added imageUrl
+    imageUrl: "/assets/home-service/service (3).jpg",
   },
 ];
 
@@ -218,6 +218,7 @@ const TitlePage = () => {
   const [suggestedServices, setSuggestedServices] = useState<string[]>([]);
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
   const [noServiceInZipCode, setNoServiceInZipCode] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Filter services based on input
   const filteredServices = ALL_SERVICES.filter((service) =>
@@ -225,6 +226,8 @@ const TitlePage = () => {
   ).slice(0, 5);
 
   useEffect(() => {
+    setIsMounted(true);
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 500);
     };
@@ -341,6 +344,19 @@ const TitlePage = () => {
 
   const userDefaultLocation = "Los Angeles, CA";
 
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!isMounted) {
+    return (
+      <div className="w-full relative min-h-[15vh] md:min-h-[40vh] flex items-center justify-center pt-4 pb-5 md:pt-8 md:pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-4 lg:px-8 h-full flex items-center justify-center">
+          <div className="animate-pulse text-gray-800 dark:text-gray-100 text-xl">
+            Loading...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <NoMatchDialog
@@ -391,10 +407,9 @@ const TitlePage = () => {
 
       {/* Hero Section */}
       <div
-        className="w-full relative min-h-[20vh] md:min-h-[50vh] flex items-center justify-center 
-                pt-8 pb-5 md:pt-16 md:pb-20"
+        className="w-full relative min-h-[15vh] md:min-h-[40vh] flex items-center justify-center 
+                pt-4 pb-5 md:pt-8 md:pb-16"
       >
-        {" "}
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Moving gradient background - different for light/dark */}
@@ -515,10 +530,11 @@ const TitlePage = () => {
             }}
           />
         </div>
-        {/* Content remains the same */}
-        <div className="relative w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <div className="flex flex-col items-center text-center gap-6 sm:gap-8 w-full py-8">
-            {/* Title */}
+
+        {/* Content */}
+        <div className="relative w-full max-w-6xl mx-auto px-4 sm:px-4 lg:px-8 h-full flex items-center">
+          <div className="flex flex-col items-center text-center gap-4 sm:gap-6 w-full py-6">
+            {/* Title - Reduced gap and padding */}
             <motion.div
               variants={titleVariants}
               initial="hidden"
@@ -526,7 +542,7 @@ const TitlePage = () => {
               className="text-gray-800 dark:text-gray-100 w-full"
             >
               <motion.h1
-                className="text-2xl sm:text-2xl md:text-4xl lg:text-4xl font-bold leading-tight px-2"
+                className="text-2xl sm:text-xl md:text-4xl lg:text-4xl font-bold leading-tight px-2"
                 whileHover={{
                   x: 5,
                   transition: { type: "spring", stiffness: 300 },
@@ -536,7 +552,7 @@ const TitlePage = () => {
                   <span>Find the Best Home Service in</span>
                   <button
                     onClick={() => setIsLocationDialogOpen(true)}
-                    className="cursor-pointer focus-visible:outline-none border-b-2 border-dashed border-gray-800 dark:border-gray-300 self-center sm:mt-4"
+                    className="cursor-pointer focus-visible:outline-none border-b-2 border-dashed border-gray-800 dark:border-gray-300 self-center mt-2 sm:mt-3"
                   >
                     {userLocation ? (
                       <span>{userLocation}</span>

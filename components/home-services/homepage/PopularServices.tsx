@@ -1,28 +1,23 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
-import {
-  Hammer,
-  School,
-  Construction,
-  Home,
-  Heater,
-  DraftingCompass,
-  DoorOpen,
-  Trash2,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 interface PopularSubCategory {
   id: number;
   name: string;
   slug: string;
-  Icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  iconColor: string;
-  hoverColor: string;
+  image: string;
 }
 
 const SubCategories = () => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Wait until after hydration to show animations and handle dark mode
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Variants definitions
   const container: Variants = {
     hidden: { opacity: 0 },
@@ -55,73 +50,57 @@ const SubCategories = () => {
       id: 1,
       name: "Roof Repair or Maintenance",
       slug: "roof_repair",
-      Icon: Home,
-      color: "bg-sky-100 dark:bg-sky-900/50",
-      iconColor: "text-sky-600 dark:text-sky-400",
-      hoverColor: "group-hover:bg-sky-600 dark:group-hover:bg-sky-700",
+      image:
+        "https://images.pexels.com/photos/7641361/pexels-photo-7641361.jpeg",
     },
     {
       id: 2,
       name: "General Contracting",
       slug: "general_contracting",
-      Icon: Construction,
-      color: "bg-purple-100 dark:bg-purple-900/50",
-      iconColor: "text-purple-600 dark:text-purple-400",
-      hoverColor: "group-hover:bg-purple-600 dark:group-hover:bg-purple-700",
+      image:
+        "https://images.pexels.com/photos/8470031/pexels-photo-8470031.jpeg",
     },
     {
       id: 3,
       name: "Interior Design",
       slug: "interior_design",
-      Icon: DraftingCompass,
-      color: "bg-amber-100 dark:bg-amber-900/50",
-      iconColor: "text-amber-600 dark:text-amber-400",
-      hoverColor: "group-hover:bg-amber-600 dark:group-hover:bg-amber-700",
+      image:
+        "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg",
     },
     {
       id: 4,
       name: "Construction Services",
       slug: "construction_services",
-      Icon: Hammer,
-      color: "bg-emerald-100 dark:bg-emerald-900/50",
-      iconColor: "text-emerald-600 dark:text-emerald-400",
-      hoverColor: "group-hover:bg-emerald-600 dark:group-hover:bg-emerald-700",
+      image:
+        "https://images.pexels.com/photos/30592258/pexels-photo-30592258.jpeg",
     },
     {
       id: 5,
       name: "Door Installation",
       slug: "door_installation",
-      Icon: DoorOpen,
-      color: "bg-rose-100 dark:bg-rose-900/50",
-      iconColor: "text-rose-600 dark:text-rose-400",
-      hoverColor: "group-hover:bg-rose-600 dark:group-hover:bg-rose-700",
+      image:
+        "https://images.pexels.com/photos/9051071/pexels-photo-9051071.jpeg",
     },
     {
       id: 6,
       name: "Floor Repair",
       slug: "floor_repair",
-      Icon: School,
-      color: "bg-indigo-100 dark:bg-indigo-900/50",
-      iconColor: "text-indigo-600 dark:text-indigo-400",
-      hoverColor: "group-hover:bg-indigo-600 dark:group-hover:bg-indigo-700",
+      image:
+        "https://images.pexels.com/photos/7491192/pexels-photo-7491192.jpeg",
     },
     {
       id: 7,
       name: "Junk Removal",
       slug: "junk_removal",
-      Icon: Trash2,
-      color: "bg-orange-100 dark:bg-orange-900/50",
-      iconColor: "text-orange-600 dark:text-orange-400",
-      hoverColor: "group-hover:bg-orange-600 dark:group-hover:bg-orange-700",
+      image:
+        "https://images.pexels.com/photos/4498090/pexels-photo-4498090.jpeg",
     },
     {
       id: 8,
       name: "Kitchen Remodel",
       slug: "kitchen_remodel",
-      Icon: Heater,
-      color: "bg-pink-100 dark:bg-pink-900/50",
-      iconColor: "text-pink-600 dark:text-pink-400",
-      hoverColor: "group-hover:bg-pink-600 dark:group-hover:bg-pink-700",
+      image:
+        "https://images.pexels.com/photos/33257996/pexels-photo-33257996.jpeg",
     },
   ];
 
@@ -131,7 +110,7 @@ const SubCategories = () => {
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={isMounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6"
         >
@@ -140,72 +119,62 @@ const SubCategories = () => {
             <span className="text-sky-600 dark:text-sky-400">Services</span>
           </h2>
           <motion.div
-            whileHover={{ x: 3 }}
+            whileHover={isMounted ? { x: 3 } : { x: 0 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
             <Link
               href="/home-services/explore-categories"
               className="text-sm text-sky-600 hover:underline dark:text-sky-400 mt-2 sm:mt-0 flex items-center gap-1"
               aria-label="Explore all categories"
+              prefetch={true}
             >
               Explore all services
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              {/* Use a consistent color that won't change between server and client */}
+              <ChevronRight className="w-4 h-4 text-sky-600" />
             </Link>
           </motion.div>
         </motion.div>
 
         {/* Categories Grid */}
         <motion.div
-          variants={container}
+          variants={isMounted ? container : undefined}
           initial="hidden"
-          animate="show"
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3"
+          animate={isMounted ? "show" : "hidden"}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4"
         >
-          {subcategories.map(
-            ({ id, name, slug, Icon, color, iconColor, hoverColor }) => (
-              <motion.div key={id} variants={item} className="col-span-1">
-                <Link
-                  href={`/home-services/professional-service/${slug}`}
-                  className="group block h-full"
-                  aria-label={`Browse ${name} services`}
+          {subcategories.map(({ id, name, slug, image }) => (
+            <motion.div
+              key={id}
+              variants={isMounted ? item : undefined}
+              className="col-span-1"
+            >
+              <Link
+                href={`/home-services/professional-service/${slug}`}
+                className="group block h-full rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                aria-label={`Browse ${name} services`}
+                prefetch={true}
+              >
+                {/* Card with background image */}
+                <div
+                  className="h-40 bg-cover bg-center relative"
+                  style={{ backgroundImage: `url(${image})` }}
                 >
-                  <div className="h-full bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 p-4 rounded-lg flex flex-col items-center text-center hover:border-sky-300 dark:hover:border-sky-500 transition-all duration-300 shadow-sm hover:shadow-md dark:hover:shadow-lg dark:shadow-gray-800/50">
-                    {/* Icon with gradient background */}
-                    <div
-                      className={`mb-3 p-3 rounded-xl ${color} ${hoverColor} transition-all duration-300 shadow-inner dark:shadow-gray-900/30`}
-                    >
-                      <Icon
-                        className={`w-5 h-5 ${iconColor} group-hover:text-white transition-colors`}
-                      />
-                    </div>
+                  {/* Gradient overlay for better text visibility */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
-                    {/* Category name */}
-                    <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2 line-clamp-2">
+                  {/* Service name positioned at bottom left */}
+                  <div className="absolute bottom-0 left-0 p-3 text-white">
+                    <h3 className="text-sm font-semibold line-clamp-2">
                       {name}
                     </h3>
-
-                    {/* View more text (hidden on small screens) */}
-                    <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors hidden sm:block">
-                      View professionals
+                    <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      View professionals →
                     </span>
                   </div>
-                </Link>
-              </motion.div>
-            )
-          )}
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>

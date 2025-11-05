@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={poppins.className}>
-      <body className={`antialiased`}>
+      <body className={`antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -44,3 +44,4 @@ export default function RootLayout({
     </html>
   );
 }
+

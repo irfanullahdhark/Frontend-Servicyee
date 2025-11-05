@@ -25,9 +25,9 @@ type AppSidebarProps = {
 };
 
 const AppSidebar: React.FC<AppSidebarProps> = ({ isServiceProvider }) => {
-  const { isExpanded, isMobileOpen } = useSidebar();
+  const { isExpanded, isMobileOpen, closeSidebar } = useSidebar();
   const pathname = usePathname();
-  
+
   const navItems = isServiceProvider ? serviceProviderNavItems : [];
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: string; index: number } | null>(null);
@@ -70,7 +70,10 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ isServiceProvider }) => {
             <li key={nav.name}>
               {nav.subItems ? (
                 <button
-                  onClick={() => handleSubmenuToggle(index, type)}
+                  onClick={() => {
+                    handleSubmenuToggle(index, type);
+                    if (isMobileOpen) closeSidebar(); // close sidebar on mobile
+                  }}
                   className={`
                     menu-item group
                     ${hasSubmenuOpen ? 
@@ -106,6 +109,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ isServiceProvider }) => {
                 nav.path && (
                   <Link
                     href={nav.path}
+                    onClick={() => {
+                      if (isMobileOpen) closeSidebar(); // close sidebar on mobile
+                    }}
                     className={`
                       menu-item group
                       ${active ? 
@@ -144,6 +150,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ isServiceProvider }) => {
                       <li key={sub.name}>
                         <Link
                           href={sub.path}
+                          onClick={() => {
+                            if (isMobileOpen) closeSidebar(); // close sidebar on mobile
+                          }}
                           className={`
                             menu-dropdown-item
                             ${isActive(sub.path)
@@ -192,35 +201,45 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ isServiceProvider }) => {
         })}
       </ul>
     ),
-    [isActive, isExpanded, isMobileOpen, openSubmenu, subMenuHeight, handleSubmenuToggle]
+    [isActive, isExpanded, isMobileOpen, openSubmenu, subMenuHeight, handleSubmenuToggle, closeSidebar]
   );
 
   return (
-    <aside
-      className={`
-        fixed mt-16 lg:mt-0 top-0 left-0 z-50 h-screen px-5 
-        bg-white dark:bg-gray-900 
-        border-r border-gray-200 dark:border-gray-800 
-        text-gray-900 dark:text-gray-100 
-        transition-all duration-300 ease-in-out 
-        ${isExpanded || isMobileOpen ? "w-[290px]" : "w-[90px]"} 
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-      `}
-    >
-      <div className={`py-8 flex ${!isExpanded ? "lg:justify-center" : "justify-start"}`}>
-        <Link href="/home-services/dashboard" className="flex items-center justify-center w-full">
-          <div className="relative w-36 h-10 mx-auto font-bold text-gray-800 dark:text-white">
-            Servicyee
-          </div>
-        </Link>
-      </div>
+    <>
+      {/* Overlay for mobile: click anywhere to close sidebar */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
 
-      <div className="flex flex-col overflow-y-auto no-scrollbar">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">{renderMenuItems(navItems, "main")}</div>
-        </nav>
-      </div>
-    </aside>
+      <aside
+        className={`
+          fixed mt-16 lg:mt-0 top-0 left-0 z-50 h-screen px-5 
+          bg-white dark:bg-gray-900 
+          border-r border-gray-200 dark:border-gray-800 
+          text-gray-900 dark:text-gray-100 
+          transition-all duration-300 ease-in-out 
+          ${isExpanded || isMobileOpen ? "w-[290px]" : "w-[90px]"} 
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
+        `}
+      >
+        <div className={`py-8 flex ${!isExpanded ? "lg:justify-center" : "justify-start"}`}>
+          <Link href="/home-services/dashboard" className="flex items-center justify-center w-full">
+            <div className="relative w-36 h-10 mx-auto font-bold text-gray-800 dark:text-white">
+              Servicyee
+            </div>
+          </Link>
+        </div>
+
+        <div className="flex flex-col overflow-y-auto no-scrollbar">
+          <nav className="mb-6">
+            <div className="flex flex-col gap-4">{renderMenuItems(navItems, "main")}</div>
+          </nav>
+        </div>
+      </aside>
+    </>
   );
 };
 

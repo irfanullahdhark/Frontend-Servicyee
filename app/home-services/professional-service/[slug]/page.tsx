@@ -8,6 +8,8 @@ import ProfessionalList from "@/components/home-services/homepage/professional/P
 import Breadcrumbs from "@/components/home-services/homepage/Breadcrumbs";
 import ServiceQuestion from "@/components/home-services/question/ServiceQuestion";
 
+//
+
 function ProfessionalTypeFilter({
   selectedType,
   onTypeChange,
@@ -61,7 +63,7 @@ export default function ProfessionalPage({
   const { slug } = use(params);
   const [selectedType, setSelectedType] = useState<string>("All");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
+  // const selectedServiceId = 2;
   const MOCK_PROFESSIONALS = [
     {
       id: 1,
@@ -217,13 +219,29 @@ export default function ProfessionalPage({
           </div>
 
           <div className="lg:w-2/4 flex-1">
-            <h1 className="text-md md:text-md font-bold">
-              Top 5 {displayService} Professionals in Your Area
-            </h1>
-            <ProfessionalTypeFilter
-              selectedType={selectedType}
-              onTypeChange={setSelectedType}
-            />
+            <div className="flex flex-row flex-wrap justify-between items-center my-2">
+              <div className="space-y-2">
+                <h1 className="text-md md:text-md font-bold">
+                  Top 5 {displayService} Professionals in Your Area
+                </h1>
+
+                <ProfessionalTypeFilter
+                  selectedType={selectedType}
+                  onTypeChange={setSelectedType}
+                />
+              </div>
+              {/* <Button
+                type="button"
+                className="bg-sky-600 dark:bg-sky-500 dark:hover:bg-sky-600 hover:bg-sky-500 px-4 rounded-xs text-white font-semibold sticky"
+              >
+                Request Qoutation
+              </Button> */}
+              {/* <Questioner
+                className="bg-sky-600 dark:bg-sky-500 dark:hover:bg-sky-600 hover:bg-sky-500 px-4 rounded-xs text-white font-semibold sticky"
+                serviceId={selectedServiceId}
+                triggerText="Request Quotation"
+              /> */}
+            </div>
             <ProfessionalList
               professionals={filteredProfessionals}
               selectedType={selectedType}

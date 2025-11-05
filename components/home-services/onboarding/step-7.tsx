@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { ProgressBar } from "@/components/home-services/onboarding/ProgressBar";
 
@@ -50,6 +50,10 @@ export default function AvailabilityForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Get ServiceId
+  const params = useSearchParams()
+  const serviceId = params.get('id')
 
   const handleTimeChange = (
     dayIndex: number,
@@ -109,7 +113,9 @@ export default function AvailabilityForm() {
         shifts: [{ openTime: '00:00', closeTime: '23:59', isClosed: false }],
       }));
     }
-
+    if (serviceId) {
+      router.back()
+    }
     router.push('/home-services/dashboard/services/step-8');
     formData.set('schedule', JSON.stringify(finalSchedule));
     setIsLoading(false);
@@ -121,13 +127,14 @@ export default function AvailabilityForm() {
 
   return (
     <div className="">
-      <ProgressBar
-        currentStep={currentStep}
-        totalSteps={ONBOARDING_STEPS.length}
-        steps={ONBOARDING_STEPS}
-        className="mb-8"
-      />
-
+      {!serviceId && (
+        <ProgressBar
+          currentStep={currentStep}
+          totalSteps={ONBOARDING_STEPS.length}
+          steps={ONBOARDING_STEPS}
+          className="mb-8"
+        />
+      )}
       <div className="flex justify-center text-[13px]  dark:bg-gray-900">
         <div className="w-full max-w-4xl dark:border-gray-700  overflow-hidden">
           <form ref={formRef} onSubmit={handleSubmit} className=" sm:p-6 md:p-10  dark:bg-gray-900">
@@ -247,28 +254,28 @@ export default function AvailabilityForm() {
       </div>
 
       {/* Navigation Buttons */}
-        <div className="fixed bottom-6 right-6 flex gap-4 text-[13px] ">
-          <button
-            onClick={handleBack}
-            type="button"
-            className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white mt-6 w-full text-[13px] py-2 px-5 rounded-[4px] "
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => formRef.current?.requestSubmit()}
-            className={`
+      <div className="fixed bottom-6 right-6 flex gap-4 text-[13px] ">
+        <button
+          onClick={handleBack}
+          type="button"
+          className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white mt-6 w-full text-[13px] py-2 px-5 rounded-[4px] "
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => formRef.current?.requestSubmit()}
+          className={`
               mt-6 w-full text-white text-[13px] py-2 px-6 rounded-[4px]
               transition duration-300 flex items-center justify-center gap-2
               ${isLoading ? 'bg-[#0077B6]/70 cursor-not-allowed' : 'bg-[#0077B6] hover:bg-[#005f8e]'}
             `}
-          >
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            <span>Next</span>
-          </button>
-        </div>
+        >
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          <span>Next</span>
+        </button>
+      </div>
     </div>
   );
 }

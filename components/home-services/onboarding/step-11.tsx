@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ProgressBar } from "./ProgressBar";
 
 const ONBOARDING_STEPS = [
@@ -36,6 +36,9 @@ export default function BackgroundCheckSelection() {
     const [showForm, setShowForm] = useState(false);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    // Get service Id
+    const params = useSearchParams()
+    const serviceId = params.get('id')
 
     const [formData, setFormData] = useState<FormData>({
         firstName: '',
@@ -70,6 +73,10 @@ export default function BackgroundCheckSelection() {
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        if (serviceId) {
+            setIsLoading(true)
+            router.back()
+        }
         // Form submission logic here
         // Simulate API call
         setTimeout(() => {
@@ -111,12 +118,14 @@ export default function BackgroundCheckSelection() {
 
     return (
         <>
-            <ProgressBar
-                currentStep={currentStep}
-                totalSteps={ONBOARDING_STEPS.length}
-                steps={ONBOARDING_STEPS}
-                className="mb-8"
-            />
+            {!serviceId && (
+                <ProgressBar
+                    currentStep={currentStep}
+                    totalSteps={ONBOARDING_STEPS.length}
+                    steps={ONBOARDING_STEPS}
+                    className="mb-8"
+                />
+            )}
             <div className="dark:from-gray-900 dark:to-gray-950 flex items-center justify-center px-4 py-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

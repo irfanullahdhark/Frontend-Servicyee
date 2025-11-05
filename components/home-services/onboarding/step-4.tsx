@@ -2,7 +2,7 @@ import { useState, useCallback, FormEvent } from 'react'
 import { useDropzone } from 'react-dropzone'
 import Image from 'next/image'
 import { ImagePlus, Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import {  useRouter, useSearchParams } from 'next/navigation'
 import { ProgressBar } from "@/components/home-services/onboarding/ProgressBar";
 
 const ONBOARDING_STEPS = [
@@ -21,6 +21,11 @@ const BusinessInfo = () => {
   const [isPending, setPending] = useState(false)
   const router = useRouter()
   const [currentStep] = useState(1);
+
+
+  // Get service Id
+  const params = useSearchParams()
+  const serviceId = params.get('id')
 
   // Track selected businessType in local state
   const [businessType, setBusinessType] = useState<'company' | 'handyman' | 'Sub-Contractor'>('company')
@@ -52,19 +57,25 @@ const BusinessInfo = () => {
 
   const handleBusiness = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // For demo purposes only - no validation or backend integration
     setPending(true)
+    if(serviceId)
+    {
+      router.back()
+    }
     router.push('/home-services/dashboard/services/step-5')
   }
 
   return (
     <div>
-      <ProgressBar
-        currentStep={currentStep}
-        totalSteps={ONBOARDING_STEPS.length}
-        steps={ONBOARDING_STEPS}
-        className="mb-8"
-      />
+
+      {!serviceId && (
+        <ProgressBar
+          currentStep={currentStep}
+          totalSteps={ONBOARDING_STEPS.length}
+          steps={ONBOARDING_STEPS}
+          className="mb-8"
+        />
+      )}
       <form onSubmit={handleBusiness} className="mx-6">
         <section className="border-b border-gray-200 dark:border-gray-700 pb-12">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">

@@ -102,7 +102,7 @@ export default function MultiChoiceServiceForm() {
 
       const [submitResult] = await Promise.all([
         SubmitAnswers(payload),
-        router.prefetch("/onboarding/preference-geo"),
+        router.prefetch("/home-services/dashboard/services/step-9"),
       ]);
 
       if (!submitResult.success) {

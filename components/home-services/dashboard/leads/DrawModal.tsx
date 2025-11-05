@@ -1,5 +1,4 @@
 /// <reference types="@types/google.maps" />
-/* global google */
 "use client";
 
 import React, { useRef, useState } from "react";

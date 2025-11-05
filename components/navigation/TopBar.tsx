@@ -33,7 +33,7 @@ export default function TopBar() {
         Download App
       </button>
       <button className="hover:underline hover:text-black dark:hover:text-white transition">
-        Sell on Marketplace
+        Sell as a Professional
       </button>
 
       <DropdownMenu>
