@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { ColumnDef } from "@tanstack/react-table"
 import { Trash, Pencil } from "lucide-react"
-import { CategoryFormData } from "@/types/it-services/category"
+import { CategoryFormData } from "@/schemas/it-services/category"
 import { Button } from "@/components/ui/button"
 
 export const getColumns = (
@@ -29,6 +29,26 @@ export const getColumns = (
 
             colSpan: 5
         }
+    },
+  {
+        accessorKey: "image",
+        header: "Image",
+        cell: ({ cell }) => {
+            const icon = cell.getValue() as string
+            return (
+                <div className="w-10 h-10 rounded-full overflow-hidden border">
+                    <Image src={icon} alt="" width={32} height={32} className="object-cover rounded-full w-full h-full"/>
+                </div>
+            )
+        },
+        meta: {
+
+            colSpan: 5
+        }
+    },
+    {
+      accessorKey: "is_active",
+      header: "Active Status",
     },
   {
     accessorKey: "actions",

@@ -5,6 +5,7 @@ import { CategoryFormData } from "@/types/it-services/category";
 interface CategoryDialogProps {
      isOpen: boolean;
      selectedCategory?: CategoryFormData | null;
+     // eslint-disable-next-line
      onClose: (isSuccess : boolean) => void;
 }
 export default function UpsertCategory({ isOpen, selectedCategory, onClose } : CategoryDialogProps) {
@@ -13,12 +14,12 @@ export default function UpsertCategory({ isOpen, selectedCategory, onClose } : C
     }
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>{selectedCategory?.id ? "Edit Category" : "Add Category"}</DialogTitle>
                     <DialogDescription/>
                 </DialogHeader>
-                <CategoryForm onClose={onClose} selectedCategory={selectedCategory}/>
+                <CategoryForm onClose={() => onClose(true)} selectedCategory={selectedCategory}/>
             </DialogContent>
         </Dialog>
     )

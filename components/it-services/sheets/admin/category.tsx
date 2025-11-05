@@ -28,13 +28,12 @@ export default function CategorySheet() {
   const { data: categories, isLoading } = useQuery({
     queryKey: categoriesQueryKey,
     queryFn: () =>
-      getCategories(
+      getCategories<CategoryFormData>(
         paginationState.pageIndex,
         paginationState.pageSize,
         searchTerm
       ),
-    select: (response) =>
-      response.success ? response?.data : { results: [], count: 0 }
+    select: (response) => response
   })
 
   const { mutate: deleteCategoryMutation } = useMutation({

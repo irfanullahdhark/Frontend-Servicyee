@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { upsertCategory } from "@/app/it-services/actions/category";
-import { CategoryFormData } from "@/types/it-services/category";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,12 +19,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ImagePicker from "@/components/it-services/utils/ImagePicker";
-import { categorySchema } from "@/schemas/it-services/category";
+import { CategorySchema, CategoryFormData } from "@/schemas/it-services/category";
 import { options } from "@/lib/it-services/utils";
 import imageCompression from "browser-image-compression";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CategoryFormProps {
-  onClose?: (isSuccess: boolean) => void;
+  onClose?: () => void;
   selectedCategory?: CategoryFormData | null;
 }
 
@@ -33,19 +34,34 @@ export default function CategoryForm({
   selectedCategory,
 }: CategoryFormProps) {
   const form = useForm<CategoryFormData>({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(CategorySchema),
     defaultValues: {
       id: selectedCategory?.id || "",
       name: selectedCategory?.name || "",
+      image: selectedCategory?.image || undefined,
       icon: selectedCategory?.icon || undefined,
+      description: selectedCategory?.description || "",
+      faqs: Array.isArray(selectedCategory?.faqs)
+        ? selectedCategory?.faqs
+        : selectedCategory?.faqs && typeof selectedCategory.faqs === "object"
+        ? Object.entries(selectedCategory.faqs).map(([question, answer]) => ({
+            question,
+            answer: String(answer ?? ""),
+          }))
+        : [{ question: "", answer: "" }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "faqs",
   });
   const [error, setError] = useState<string | null>(null);
     const { mutate, isPending } = useMutation({
             mutationFn: upsertCategory,
             onSuccess: () => {
                 toast.success("Category saved successfully");
-                onClose?.(true);
+                onClose?.();
             },
             onError: (error) => {
                 setError(error.message);
@@ -54,62 +70,159 @@ export default function CategoryForm({
         });
 
   const onSubmit = async (data: CategoryFormData) => {
-    if (data.icon instanceof File) {
+    if (data.icon && data.image instanceof File) {
       const compressedIcon = await imageCompression(data.icon, options);
-      const fileWithName = new File([compressedIcon], data.icon.name, {
+      const compressedImage = await imageCompression(data.image, options);
+      const imageWithName = new File([compressedImage], data.image.name, {
         type: compressedIcon.type,
       });
-      mutate({ ...data, icon: fileWithName });
+      const iconWithName = new File([compressedIcon], data.icon.name, {
+        type: compressedIcon.type,
+      });
+      mutate({ ...data, icon:iconWithName, image: imageWithName, });
     }
     else mutate(data);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          disabled={isPending}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Enter category name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="icon"
-          disabled={isPending}
-          render={() => (
-            <FormItem>
-              <FormLabel>Icon</FormLabel>
-              <ImagePicker
-                onChange={(file) => {
-                  if (file) form.setValue(`icon`, file, { shouldDirty: true });
-                  else form.setValue(`icon`, null, { shouldDirty: true });
-                }}
-                name="icon"
-                defaultImage={(() => {
-                  const icon = form.getValues(`icon`);
-                  return typeof icon === "string" ? icon : null;
-                })()}
-              />
-            </FormItem>
-          )}
-        />
+  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-destructive">{error}</p>
-          <Button disabled={isPending || !form.formState.isDirty}>
-            {isPending ? <Loader2 className="animate-spin" /> : 'Save'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    {/* Category Name */}
+    <FormField
+      control={form.control}
+      name="name"
+      disabled={isPending}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Name</FormLabel>
+          <FormControl>
+            <Input {...field} placeholder="Enter category name" />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    {/* Description */}
+    <FormField
+      control={form.control}
+      name="description"
+      disabled={isPending}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Description</FormLabel>
+          <FormControl>
+            <Textarea {...field} placeholder="Enter category description" />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    {/* Icon Upload */}
+    <FormField
+      control={form.control}
+      name="icon"
+      disabled={isPending}
+      render={() => (
+        <FormItem>
+          <FormLabel>Icon</FormLabel>
+          <ImagePicker
+            onChange={(file) => {
+              if (file) form.setValue("icon", file, { shouldDirty: true });
+              else form.setValue("icon", null, { shouldDirty: true });
+            }}
+            name="icon"
+            defaultImage={(() => {
+              const icon = form.getValues("icon");
+              return typeof icon === "string" ? icon : null;
+            })()}
+          />
+        </FormItem>
+      )}
+    />
+
+    {/* Image Upload */}
+    <FormField
+      control={form.control}
+      name="image"
+      disabled={isPending}
+      render={() => (
+        <FormItem>
+          <FormLabel>Image</FormLabel>
+          <ImagePicker
+            onChange={(file) => {
+              if (file) form.setValue("image", file, { shouldDirty: true });
+              else form.setValue("image", null, { shouldDirty: true });
+            }}
+            name="image"
+            defaultImage={(() => {
+              const image = form.getValues("image");
+              return typeof image === "string" ? image : null;
+            })()}
+          />
+        </FormItem>
+      )}
+    />
+
+    {/* FAQs (Dynamic field array) */}
+    <FormItem>
+      <FormLabel>FAQs</FormLabel>
+      <FormDescription>Add FAQs as question → answer pairs</FormDescription>
+      <div className="space-y-2">
+        {fields.map((item, index) => (
+          <div key={item.id} className="flex flex-col gap-2 w-full">
+            <FormField
+              control={form.control}
+              name={`faqs.${index}.question` as const}
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <Textarea {...field} placeholder="Question" className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={`faqs.${index}.answer` as const}
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <Textarea {...field} placeholder="Answer" className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end">
+              <Button type="button" variant="destructive" onClick={() => remove(index)}>
+                Remove
+              </Button>
+            </div>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => append({ question: "", answer: "" })}
+        >
+          Add FAQ
+        </Button>
+      </div>
+    </FormItem>
+
+    {/* Submit Button */}
+    <div className="flex justify-between items-center">
+      <p className="text-sm text-destructive">{error}</p>
+      <Button disabled={isPending || !form.formState.isDirty}>
+        {isPending ? <Loader2 className="animate-spin" /> : "Save"}
+      </Button>
+    </div>
+  </form>
+</Form>
+
   )
 }

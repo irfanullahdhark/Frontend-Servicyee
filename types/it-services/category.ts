@@ -1,24 +1,7 @@
-import { PaginatedResponse } from "./";
-  
-export interface Subcategory {
-  id: string;
-  name: string;
-  slug: string;
-}
+import { CategoryFormData } from "@/schemas/it-services/category";
+import { Response } from "@/types/it-services";
 
-export interface  Category {
-  id: string;
-  name: string;
-  slug: string;
-  subcategories: Subcategory[]; 
-}
+export type { CategoryFormData };
 
-export interface CategoryResponse extends PaginatedResponse {
-  results: Category[];
-}
+export type CategoryResponse = Response<CategoryFormData>;
 
-export interface CategoryFormData {
-  id?: string;
-  name: string;
-  icon?: File | null;
-}
