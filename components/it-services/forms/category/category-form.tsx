@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +25,8 @@ import imageCompression from "browser-image-compression";
 import { Textarea } from "@/components/ui/textarea";
 
 interface CategoryFormProps {
-  onClose?: () => void;
+  // eslint-disable-next-line
+  onClose?: (isSuccess?: boolean) => void;
   selectedCategory?: CategoryFormData | null;
 }
 
@@ -57,17 +58,50 @@ export default function CategoryForm({
     name: "faqs",
   });
   const [error, setError] = useState<string | null>(null);
-    const { mutate, isPending } = useMutation({
-            mutationFn: upsertCategory,
-            onSuccess: () => {
-                toast.success("Category saved successfully");
-                onClose?.();
-            },
-            onError: (error) => {
-                setError(error.message);
-                toast.error("Failed to save Category");
-            },
-        });
+  
+  // Reset form when selectedCategory changes
+  useEffect(() => {
+    if (selectedCategory) {
+      form.reset({
+        id: selectedCategory.id || "",
+        name: selectedCategory.name || "",
+        image: selectedCategory.image || undefined,
+        icon: selectedCategory.icon || undefined,
+        description: selectedCategory.description || "",
+        faqs: Array.isArray(selectedCategory.faqs)
+          ? selectedCategory.faqs
+          : selectedCategory.faqs && typeof selectedCategory.faqs === "object"
+          ? Object.entries(selectedCategory.faqs).map(([question, answer]) => ({
+              question,
+              answer: String(answer ?? ""),
+            }))
+          : [{ question: "", answer: "" }],
+      });
+    } else {
+      // Reset to empty form for new category
+      form.reset({
+        id: "",
+        name: "",
+        image: undefined,
+        icon: undefined,
+        description: "",
+        faqs: [{ question: "", answer: "" }],
+      });
+    }
+  }, [selectedCategory, form]);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: upsertCategory,
+    onSuccess: () => {
+      toast.success("Category saved successfully");
+      // Pass true to indicate success
+      onClose?.(true);
+    },
+    onError: (error) => {
+      setError(error.message);
+      toast.error("Failed to save Category");
+    },
+  });
 
   const onSubmit = async (data: CategoryFormData) => {
     if (data.icon && data.image instanceof File) {
@@ -217,9 +251,14 @@ export default function CategoryForm({
     {/* Submit Button */}
     <div className="flex justify-between items-center">
       <p className="text-sm text-destructive">{error}</p>
-      <Button disabled={isPending || !form.formState.isDirty}>
-        {isPending ? <Loader2 className="animate-spin" /> : "Save"}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={() => onClose?.(false)} disabled={isPending}>
+          Cancel
+        </Button>
+        <Button disabled={isPending || !form.formState.isDirty}>
+          {isPending ? <Loader2 className="animate-spin" /> : "Save"}
+        </Button>
+      </div>
     </div>
   </form>
 </Form>

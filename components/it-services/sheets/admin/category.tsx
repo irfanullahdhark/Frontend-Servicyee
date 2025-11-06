@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { PlusCircle } from "lucide-react"
 import { toast } from "sonner"
 import { deleteCategory, getCategories } from "@/app/it-services/actions/category"
@@ -10,14 +11,19 @@ import { getColumns } from "@/components/it-services/tables/columns/category-col
 import { TableSkeleton } from "@/components/it-services/skeletons/table"
 import PageHeader from "@/components/it-services/dashboard/page-header"
 import AdvancedTable from "@/components/it-services/utils/advanced-table"
-import UpsertCategoryDialog from "@/components/it-services/dialogs/category/upsert-category"
+import UpsertCategorySection from "@/components/it-services/dialogs/category/upsert-category"
 
 export default function CategorySheet() {
   const queryClient = useQueryClient()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [paginationState, setPaginationState] = useState({ pageIndex: 0, pageSize: 10 })
   const [searchTerm, setSearchTerm] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<CategoryFormData | null>(null)
+  
+  const showCategoryForm = searchParams.get("category") !== null
+  const categoryId = searchParams.get("id")
 
   const categoriesQueryKey = [
     "categories",
@@ -48,15 +54,50 @@ export default function CategorySheet() {
     onError: (error) => toast.error(error.message)
   })
 
-  const handleClose = async (isSuccess: boolean) => {
-    if (isSuccess) await queryClient.invalidateQueries({ queryKey: categoriesQueryKey })
-    setIsDialogOpen(false)
+  // Load category data when edit mode is active
+  useEffect(() => {
+    if (showCategoryForm && categoryId && categories?.results) {
+      const category = (categories.results as CategoryFormData[]).find(
+        (cat) => cat.id === categoryId
+      )
+      if (category) {
+        setSelectedCategory(category)
+      }
+    } else if (showCategoryForm && !categoryId) {
+      setSelectedCategory(null)
+    }
+  }, [showCategoryForm, categoryId, categories])
+
+  const handleClose = async (isSuccess: boolean = false) => {
+    if (isSuccess) {
+      // Invalidate all category queries, not just the specific one
+      await queryClient.invalidateQueries({ queryKey: ["categories"] })
+      await queryClient.invalidateQueries({ queryKey: ["all-categories"] })
+    }
+    // Clear URL params
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("category")
+    params.delete("id")
+    const queryString = params.toString()
+    router.push(`${pathname}${queryString ? `?${queryString}` : ""}`)
     setSelectedCategory(null)
   }
 
   const handleEdit = (category: CategoryFormData) => {
-    setIsDialogOpen(true)
+    // Set the category immediately so form can populate
     setSelectedCategory(category)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("category", "edit")
+    if (category.id) {
+      params.set("id", category.id)
+    }
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleAddCategory = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("category", "add")
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   const handlePaginationChange = (pageIndex: number, pageSize: number) => {
@@ -78,33 +119,35 @@ export default function CategorySheet() {
         action={{
           label: "Add Category",
           icon: <PlusCircle />,
-          onClick: () => setIsDialogOpen(true),
+          onClick: handleAddCategory,
         }}
       />
-      <AdvancedTable<CategoryFormData>
-        columns={getColumns(handleEdit, handleDelete)}
-        data={(categories?.results as CategoryFormData[]) || []}
-        searchPlaceholder="by name"
-        searchColumn="name"
-        isLoading={isLoading}
-        loadingSkeleton={
-          <TableSkeleton columns={3} rows={2} />
-        }
-        totalCount={categories?.count || 0}
-        pageSize={paginationState.pageSize}
-        pageIndex={paginationState.pageIndex}
-        onPaginationChange={handlePaginationChange}
-        serverPagination={true}
-        serverSearch={true}
-        searchValue={searchTerm}
-        onSearchChange={handleSearchChange}
-      />
-
-      <UpsertCategoryDialog
-        isOpen={isDialogOpen}
-        selectedCategory={selectedCategory}
-        onClose={handleClose}
-      />
+      
+      {showCategoryForm ? (
+        <UpsertCategorySection
+          selectedCategory={selectedCategory}
+          onClose={handleClose}
+        />
+      ) : (
+        <AdvancedTable<CategoryFormData>
+          columns={getColumns(handleEdit, handleDelete)}
+          data={(categories?.results as CategoryFormData[]) || []}
+          searchPlaceholder="by name"
+          searchColumn="name"
+          isLoading={isLoading}
+          loadingSkeleton={
+            <TableSkeleton columns={3} rows={2} />
+          }
+          totalCount={categories?.count || 0}
+          pageSize={paginationState.pageSize}
+          pageIndex={paginationState.pageIndex}
+          onPaginationChange={handlePaginationChange}
+          serverPagination={true}
+          serverSearch={true}
+          searchValue={searchTerm}
+          onSearchChange={handleSearchChange}
+        />
+      )}
     </div>
   )
 }
