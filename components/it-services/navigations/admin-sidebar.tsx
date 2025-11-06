@@ -38,9 +38,8 @@ const navItems = [
     url: "#",
     icon: Layers,
     items: [
-      { title: "All Categories", url: "#" },
-      { title: "Create Category", url: "#" },
-      { title: "Sub Categories", url: "#" },
+      { title: "Category", url: "/it-services/admin/categories/" },
+      { title: "Sub Categories", url: "/it-services/admin/sub-categories/" },
     ],
   },
   {

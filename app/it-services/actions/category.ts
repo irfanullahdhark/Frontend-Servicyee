@@ -1,12 +1,17 @@
 'use server'
 
 // import { fetchAPI } from "@/lib/api"
-import {CategoryFormData} from "@/schemas/it-services/category"
-import { PaginatedResponse, Response } from "@/types/it-services"
+import {CategoryFormData, SubCategoryFormData} from "@/schemas/it-services/category"
+import { PaginatedResponse } from "@/types/it-services"
 import { CategoryResponse } from "@/types/it-services/category"
+
 
 const BASE_URL =  process.env.API_URL 
 const CATEGORY_URL = `${BASE_URL}/api/v1/category/`
+const CATEGORY_LIST = `${BASE_URL}/api/v1/category-list/`
+const SUB_CATEGORY_URL = `${BASE_URL}/api/v1/subcategory/`
+
+
 
 export const getCategories = async <T>(page: number, pageSize: number, search?: string) => {
     const params = `?page=${page + 1}&page_size=${pageSize}&search=${encodeURIComponent(search ?? "")}`
@@ -20,10 +25,18 @@ export const getCategories = async <T>(page: number, pageSize: number, search?: 
     return json as PaginatedResponse<T>
 }
 
-export const getPublicCategories = async (): Promise<CategoryResponse> =>
+export const getPublicCategories = async (limit: number, offset: number, search?: string): Promise<CategoryResponse> =>
 {
-
-    return {} as CategoryResponse
+    let params = `?limit=${limit}&offset=${offset}`
+    if (search) params += `&search=${encodeURIComponent(search)}`
+    const response = await fetch(CATEGORY_LIST + params, { cache: 'no-store' })
+    // If response.data is undefined, return a default CategoryResponse object
+    if (!response.ok) {
+        const text = await response.text().catch(() => '')
+        throw new Error(text || 'Failed to load categories')
+    }
+    const json = await response.json()
+    return json;
 }
 
 export const upsertCategory = async (data: CategoryFormData) => {
@@ -70,8 +83,94 @@ export const deleteCategory = async (id:string) =>
     })
 
     if (!response.ok) {
-        throw new Error("Failed to upsert category");
+        throw new Error("Failed to delete category");
     }
 
-    return await response.json()
+    // Check if response has content before parsing JSON
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+        const text = await response.text();
+        return text ? JSON.parse(text) : null;
+    }
+    
+    return null;
+}
+
+
+
+export const getSubCategories = async <T>(page: number, pageSize: number, search?: string) => {
+    const params = `?page=${page + 1}&page_size=${pageSize}&search=${encodeURIComponent(search ?? "")}`
+    const url = SUB_CATEGORY_URL + params
+    const response = await fetch(url, { cache: 'no-store' })
+    if (!response.ok) {
+        const text = await response.text().catch(() => '')
+        throw new Error(text || 'Failed to load sub categories')
+    }
+    const json = await response.json()
+    return json as PaginatedResponse<T>
+}
+
+
+export const upsertSubCategory = async (data: SubCategoryFormData) => {
+    const isUpdate = !!data.id
+    const url = isUpdate ? SUB_CATEGORY_URL + `${data.id}/` : SUB_CATEGORY_URL
+    const formData = new FormData();
+  
+    formData.append("category", data.category || "");
+    formData.append("name", data.name);
+  
+    if (typeof data.description === "string")
+      formData.append("description", data.description);
+  
+    if (typeof (data as any).has_service_type !== "undefined" && (data as any).has_service_type !== null) {
+      formData.append("has_service_type", String((data as any).has_service_type));
+    }
+  
+    if (typeof window !== "undefined") {
+      if (data.icon instanceof File) formData.append("icon", data.icon);
+      if (data.image instanceof File) formData.append("image", data.image);
+    } else {
+      // @ts-ignore - for Node.js or SSR
+      if (data.icon && typeof (data.icon as any).arrayBuffer === "function")
+        formData.append("icon", data.icon as any);
+      // @ts-ignore
+      if (data.image && typeof (data.image as any).arrayBuffer === "function")
+        formData.append("image", data.image as any);
+    }
+  
+
+    const response = await fetch(url, {
+      method: isUpdate ? "PATCH" : "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.json().then(data => data.detail));
+    }
+  
+    return (await response.json()) as CategoryFormData;
+  };
+  
+
+
+export const deleteSubCategory = async (id:string) =>
+{
+    const resp = await fetch(SUB_CATEGORY_URL + `${id}/`, {
+        method: "DELETE",
+    })
+   
+    if (!resp.ok) {
+        throw new Error(resp.statusText);
+    }
+    
+    // these line will replace with fetchApi
+    // Check if response has content before parsing JSON
+    const contentType = resp.headers.get("content-type");
+    let response = null;
+    if (contentType && contentType.includes("application/json")) {
+        const text = await resp.text();
+        response = text ? JSON.parse(text) : null;
+    }
+    
+    return {success: resp.ok, data: response , error: null} ;
 }

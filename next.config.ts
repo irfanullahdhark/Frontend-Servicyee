@@ -22,6 +22,21 @@ const nextConfig: NextConfig = {
           hostname: '192.168.1.72',
           port: '8005',
         },
+        {
+          protocol: 'http',
+          hostname: '192.168.137.210',
+          port: '8005',
+        },
+        {
+          protocol: 'http',
+          hostname: '192.168.137.231',
+          port: '8005',
+        },
+        {
+          protocol: 'http',
+          hostname: '127.0.0.1',
+          port: '8005',
+        },
       ],
   },
   // i18n is removed if using App Router
