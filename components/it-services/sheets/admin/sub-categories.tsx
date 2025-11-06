@@ -11,7 +11,7 @@ import { getColumns } from "@/components/it-services/tables/columns/category-col
 import { TableSkeleton } from "@/components/it-services/skeletons/table"
 import PageHeader from "@/components/it-services/dashboard/page-header"
 import AdvancedTable from "@/components/it-services/utils/advanced-table"
-import UpsertSubCategorySection from "@/components/it-services/dialogs/category/upsert-subcategory"
+import UpsertSubCategorySection from "@/components/it-services/cards/admin-dashboard/upsert-subcategory"
 
 export default function SubCategorySheet() {
   const queryClient = useQueryClient()
