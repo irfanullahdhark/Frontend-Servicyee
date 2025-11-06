@@ -40,7 +40,8 @@ export const getPublicCategories = async (limit: number, offset: number, search?
 }
 
 export const upsertCategory = async (data: CategoryFormData) => {
-    const url = `${CATEGORY_URL}`
+    const isUpdate = !!data.id
+    const url = isUpdate ? CATEGORY_URL + `${data.id}/` : CATEGORY_URL
     const formData = new FormData()
 
     // text fields
@@ -65,36 +66,38 @@ export const upsertCategory = async (data: CategoryFormData) => {
     }
 
     const response = await fetch(url, {
-        method: "POST",
+        method: isUpdate ? "PATCH" : "POST",
         body: formData,
     })
 
     if (!response.ok) {
-        throw new Error("Failed to upsert category");
+        throw new Error(await response.json().then(data => data.detail));
     }
 
     return (await response.json()) as CategoryFormData
 }
 
 export const deleteCategory = async (id:string) =>
-{
-    const response = await fetch(CATEGORY_URL + `${id}/`, {
-        method: "DELETE",
-    })
-
-    if (!response.ok) {
-        throw new Error("Failed to delete category");
+    {
+        const resp = await fetch(CATEGORY_URL + `${id}/`, {
+            method: "DELETE",
+        })
+       
+        if (!resp.ok) {
+            throw new Error(resp.statusText);
+        }
+        
+        // these line will replace with fetchApi
+        // Check if response has content before parsing JSON
+        const contentType = resp.headers.get("content-type");
+        let response = null;
+        if (contentType && contentType.includes("application/json")) {
+            const text = await resp.text();
+            response = text ? JSON.parse(text) : null;
+        }
+        
+        return {success: resp.ok, data: response , error: null} ;
     }
-
-    // Check if response has content before parsing JSON
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        const text = await response.text();
-        return text ? JSON.parse(text) : null;
-    }
-    
-    return null;
-}
 
 
 

@@ -23,7 +23,7 @@ export const getColumns = (
             const icon = cell.getValue() as string
             return (
                 <div className="w-10 h-10 rounded-full overflow-hidden border">
-                    <Image src={icon} alt="" width={32} height={32} className="object-cover rounded-full w-full h-full"/>
+                    <Image src={icon} alt="Category Icon" width={32} height={32} className="object-cover rounded-full w-full h-full"/>
                 </div>
             )
         },
@@ -39,7 +39,7 @@ export const getColumns = (
             const icon = cell.getValue() as string
             return (
                 <div className="w-10 h-10 rounded-full overflow-hidden border">
-                    <Image src={icon} alt="category icon" width={32} height={32} className="object-cover rounded-full w-full h-full"/>
+                    <Image src={icon} alt="Category Image" width={32} height={32} className="object-cover rounded-full w-full h-full"/>
                 </div>
             )
         },

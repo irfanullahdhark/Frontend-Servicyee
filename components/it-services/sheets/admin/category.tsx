@@ -38,12 +38,14 @@ export default function CategorySheet() {
 
   const { mutate: deleteCategoryMutation } = useMutation({
     mutationFn: deleteCategory,
-    onSuccess: () => {
+    onSuccess: (response) => {
+      if (response.success) {
       queryClient.invalidateQueries({ queryKey: categoriesQueryKey })
-      queryClient.invalidateQueries({ queryKey: ["all-categories"] })
-      toast.success("Category deleted successfully")
+        queryClient.invalidateQueries({ queryKey: ["all-categories"] })
+        toast.success("Category deleted successfully")
+      }
     },
-    onError: () => toast.error("Failed to delete Category")
+    onError: (error) => toast.error(error.message)
   })
 
   const handleClose = async (isSuccess: boolean) => {
