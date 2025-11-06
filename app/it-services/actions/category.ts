@@ -1,15 +1,17 @@
 'use server'
 
 // import { fetchAPI } from "@/lib/api"
-import {CategoryFormData, SubCategoryFormData} from "@/schemas/it-services/category"
+import {CategoryFormData, ServiceTypeFormData, SubCategoryFormData} from "@/schemas/it-services/category"
 import { PaginatedResponse } from "@/types/it-services"
 import { CategoryResponse } from "@/types/it-services/category"
 
 
 const BASE_URL =  process.env.API_URL 
 const CATEGORY_URL = `${BASE_URL}/api/v1/category/`
-const CATEGORY_LIST = `${BASE_URL}/api/v1/category-list/`
+const CATEGORY_LIST_URL = `${BASE_URL}/api/v1/category-list/`
 const SUB_CATEGORY_URL = `${BASE_URL}/api/v1/subcategory/`
+const SERVICE_TYPE_URL = `${BASE_URL}/api/v1/service-type/`
+const SUBCATEGORY_LIST_URL = `${BASE_URL}/api/v1/subcategory-list/`
 
 
 
@@ -29,7 +31,7 @@ export const getPublicCategories = async (limit: number, offset: number, search?
 {
     let params = `?limit=${limit}&offset=${offset}`
     if (search) params += `&search=${encodeURIComponent(search)}`
-    const response = await fetch(CATEGORY_LIST + params, { cache: 'no-store' })
+    const response = await fetch(CATEGORY_LIST_URL + params, { cache: 'no-store' })
     // If response.data is undefined, return a default CategoryResponse object
     if (!response.ok) {
         const text = await response.text().catch(() => '')
@@ -114,6 +116,18 @@ export const getSubCategories = async <T>(page: number, pageSize: number, search
 }
 
 
+export const getPublicSubCategories = async (limit: number, offset: number, search?: string): Promise<CategoryResponse> =>
+{
+    let params = `?limit=${limit}&offset=${offset}`
+    if (search) params += `&search=${encodeURIComponent(search)}`
+    const response = await fetch(SUBCATEGORY_LIST_URL + params, { cache: 'no-store' })
+    if (!response.ok) {
+        throw new Error(await response.json().then(data => data.detail));
+        }
+    const json = await response.json()
+    return json;
+}
+
 export const upsertSubCategory = async (data: SubCategoryFormData) => {
     const isUpdate = !!data.id
     const url = isUpdate ? SUB_CATEGORY_URL + `${data.id}/` : SUB_CATEGORY_URL
@@ -162,6 +176,63 @@ export const deleteSubCategory = async (id:string) =>
         method: "DELETE",
     })
    
+    if (!resp.ok) {
+        throw new Error(resp.statusText);
+    }
+    
+    // these line will replace with fetchApi
+    // Check if response has content before parsing JSON
+    const contentType = resp.headers.get("content-type");
+    let response = null;
+    if (contentType && contentType.includes("application/json")) {
+        const text = await resp.text();
+        response = text ? JSON.parse(text) : null;
+    }
+    
+    return {success: resp.ok, data: response , error: null} ;
+}
+
+
+
+export const getServiceTypes = async <T>(page: number, pageSize: number, search?: string) => {
+    const params = `?page=${page + 1}&page_size=${pageSize}&search=${encodeURIComponent(search ?? "")}`
+    const url = SERVICE_TYPE_URL + params
+    const response = await fetch(url, { cache: 'no-store' })
+    if (!response.ok) {
+        const text = await response.text().catch(() => '')
+        throw new Error(text || 'Failed to load service types')
+    }
+    const json = await response.json()
+    return json as PaginatedResponse<T>
+}
+
+export const upsertServiceType = async (data: ServiceTypeFormData) => {
+    const isUpdate = !!data.id
+    const url = isUpdate ? SERVICE_TYPE_URL + `${data.id}/` : SERVICE_TYPE_URL
+    const formData = new FormData();
+  
+    formData.append("subcategory", data.subcategory || "");
+    formData.append("name", data.name);
+    
+    const response = await fetch(url, {
+      method: isUpdate ? "PATCH" : "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.json().then(data => data.detail));
+    }
+  
+    return (await response.json()) as ServiceTypeFormData;
+  };
+
+
+export const deleteServiceType = async (id:string) =>
+{
+    const resp = await fetch(SERVICE_TYPE_URL + `${id}/`, {
+        method: "DELETE",
+    })
+    
     if (!resp.ok) {
         throw new Error(resp.statusText);
     }

@@ -26,7 +26,7 @@ export type CategoryFormData = z.infer<typeof CategorySchema>
 export const SubCategorySchema = z.object({
   id: z.string().trim().optional(),
   category: z.string().trim().optional(), 
-  name: z.string().trim().min(1, { message: "Category name is required" }),
+  name: z.string().trim().min(1, { message: "Sub Category name is required" }),
   image: IconSchema,
   icon: IconSchema,
   description: z.string().trim().optional(),
@@ -37,3 +37,14 @@ export const SubCategorySchema = z.object({
 });
 
 export type SubCategoryFormData = z.infer<typeof SubCategorySchema>
+
+
+export const ServiceTypeSchema = z.object({
+  id: z.string().trim().optional(),
+  subcategory: z.string().trim(), 
+  name: z.string().trim().min(1, { message: "Service Type name is required" }),
+  created_at: z.string().datetime().optional(),
+  updated_at: z.string().datetime().optional(),
+});
+
+export type ServiceTypeFormData = z.infer<typeof ServiceTypeSchema>

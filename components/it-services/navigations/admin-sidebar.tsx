@@ -41,6 +41,7 @@ const navItems = [
     items: [
       { title: "Category", url: "/it-services/admin/categories/" },
       { title: "Sub Categories", url: "/it-services/admin/sub-categories/" },
+      { title: "Service-Types", url: "/it-services/admin/service-types" },
     ],
   },
   {
