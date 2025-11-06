@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation} from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,7 +32,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { AsyncDropdown } from "@/components/it-services/extensions/async-dropdown";
 
 interface SubCategoryFormProps {
-  onClose?: () => void;
+  // eslint-disable-next-line
+  onClose?: (isSuccess?: boolean) => void;
   selectedCategory?: SubCategoryFormData | null;
 }
 
@@ -64,31 +65,80 @@ export default function SubCategoryForm({
   });
 
   const [error, setError] = useState<string | null>(null);
-    const { mutate, isPending } = useMutation({
-            mutationFn: upsertSubCategory,
-            onSuccess: () => {
-                toast.success("Sub Category saved successfully");
-                onClose?.();
-            },
-            onError: (error) => {
-                setError(error.message);
-                toast.error("Failed to save Sub Category");
-            },
-        });
+  
+  // Reset form when selectedCategory changes
+  useEffect(() => {
+    if (selectedCategory) {
+      form.reset({
+        id: selectedCategory.id || "",
+        category: selectedCategory.category || "",
+        name: selectedCategory.name || "",
+        image: selectedCategory.image || undefined,
+        icon: selectedCategory.icon || undefined,
+        description: selectedCategory.description || "",
+        has_service_type: selectedCategory.has_service_type,
+      });
+    } else {
+      // Reset to empty form for new sub-category
+      form.reset({
+        id: "",
+        category: "",
+        name: "",
+        image: undefined,
+        icon: undefined,
+        description: "",
+        has_service_type: undefined,
+      });
+    }
+  }, [selectedCategory, form]);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: upsertSubCategory,
+    onSuccess: () => {
+      toast.success("Sub Category saved successfully");
+      // Pass true to indicate success
+      onClose?.(true);
+    },
+    onError: (error) => {
+      setError(error.message);
+      toast.error("Failed to save Sub Category");
+    },
+  });
 
   const onSubmit = async (data: SubCategoryFormData) => {
-    if (data.icon && data.image instanceof File) {
+    const submitData = { ...data };
+    
+    // Handle icon - only process if it's a File
+    if (data.icon instanceof File) {
       const compressedIcon = await imageCompression(data.icon, options);
-      const compressedImage = await imageCompression(data.image, options);
-      const imageWithName = new File([compressedImage], data.image.name, {
-        type: compressedIcon.type,
-      });
       const iconWithName = new File([compressedIcon], data.icon.name, {
         type: compressedIcon.type,
       });
-      mutate({ ...data, icon:iconWithName, image: imageWithName, });
+      submitData.icon = iconWithName;
+    } else if (typeof data.icon === 'string') {
+      // If it's a string (existing URL), remove it so backend keeps the existing file
+      delete (submitData as any).icon;
+    } else {
+      // If it's null/undefined, set to null
+      submitData.icon = null;
     }
-    else mutate(data);
+    
+    // Handle image - only process if it's a File
+    if (data.image instanceof File) {
+      const compressedImage = await imageCompression(data.image, options);
+      const imageWithName = new File([compressedImage], data.image.name, {
+        type: compressedImage.type,
+      });
+      submitData.image = imageWithName;
+    } else if (typeof data.image === 'string') {
+      // If it's a string (existing URL), remove it so backend keeps the existing file
+      delete (submitData as any).image;
+    } else {
+      // If it's null/undefined, set to null
+      submitData.image = null;
+    }
+    
+    mutate(submitData);
   };
 
   return (
@@ -243,9 +293,14 @@ export default function SubCategoryForm({
     {/* Submit Button */}
     <div className="flex justify-between items-center">
       <p className="text-sm text-destructive">{error}</p>
-      <Button disabled={isPending || !form.formState.isDirty}>
-        {isPending ? <Loader2 className="animate-spin" /> : "Save"}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={() => onClose?.(false)} disabled={isPending}>
+          Cancel
+        </Button>
+        <Button disabled={isPending || !form.formState.isDirty}>
+          {isPending ? <Loader2 className="animate-spin" /> : "Save"}
+        </Button>
+      </div>
     </div>
   </form>
 </Form>

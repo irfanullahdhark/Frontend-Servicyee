@@ -104,18 +104,39 @@ export default function CategoryForm({
   });
 
   const onSubmit = async (data: CategoryFormData) => {
-    if (data.icon && data.image instanceof File) {
+    const submitData = { ...data };
+    
+    // Handle icon - only process if it's a File
+    if (data.icon instanceof File) {
       const compressedIcon = await imageCompression(data.icon, options);
-      const compressedImage = await imageCompression(data.image, options);
-      const imageWithName = new File([compressedImage], data.image.name, {
-        type: compressedIcon.type,
-      });
       const iconWithName = new File([compressedIcon], data.icon.name, {
         type: compressedIcon.type,
       });
-      mutate({ ...data, icon:iconWithName, image: imageWithName, });
+      submitData.icon = iconWithName;
+    } else if (typeof data.icon === 'string') {
+      // If it's a string (existing URL), remove it so backend keeps the existing file
+      delete (submitData as any).icon;
+    } else {
+      // If it's null/undefined, set to null
+      submitData.icon = null;
     }
-    else mutate(data);
+    
+    // Handle image - only process if it's a File
+    if (data.image instanceof File) {
+      const compressedImage = await imageCompression(data.image, options);
+      const imageWithName = new File([compressedImage], data.image.name, {
+        type: compressedImage.type,
+      });
+      submitData.image = imageWithName;
+    } else if (typeof data.image === 'string') {
+      // If it's a string (existing URL), remove it so backend keeps the existing file
+      delete (submitData as any).image;
+    } else {
+      // If it's null/undefined, set to null
+      submitData.image = null;
+    }
+    
+    mutate(submitData);
   };
 
   return (

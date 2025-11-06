@@ -52,6 +52,10 @@ export const getColumns = (
       accessorKey: "is_active",
       header: "Active Status",
     },
+    {
+      accessorKey: "has_service_type",
+      header: "Has Service Type",
+    },
   {
     accessorKey: "actions",
     header: "Actions",

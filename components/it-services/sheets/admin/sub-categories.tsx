@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { PlusCircle } from "lucide-react"
 import { toast } from "sonner"
 import { deleteSubCategory, getSubCategories } from "@/app/it-services/actions/category"
@@ -10,14 +11,19 @@ import { getColumns } from "@/components/it-services/tables/columns/category-col
 import { TableSkeleton } from "@/components/it-services/skeletons/table"
 import PageHeader from "@/components/it-services/dashboard/page-header"
 import AdvancedTable from "@/components/it-services/utils/advanced-table"
-import UpsertSubCategory from "@/components/it-services/dialogs/category/upsert-subcategory"
+import UpsertSubCategorySection from "@/components/it-services/dialogs/category/upsert-subcategory"
 
 export default function SubCategorySheet() {
   const queryClient = useQueryClient()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [paginationState, setPaginationState] = useState({ pageIndex: 0, pageSize: 10 })
   const [searchTerm, setSearchTerm] = useState("")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategoryFormData | null>(null)
+  
+  const showSubCategoryForm = searchParams.get("subcategory") !== null
+  const subCategoryId = searchParams.get("id")
 
   const subCategoriesQueryKey = [
     "sub-categories",
@@ -40,7 +46,7 @@ export default function SubCategorySheet() {
     mutationFn: deleteSubCategory,
     onSuccess: (response) => {
       if (response.success) {
-        queryClient.invalidateQueries({ queryKey: subCategoriesQueryKey })
+        queryClient.invalidateQueries({ queryKey: ["sub-categories"] })
         queryClient.invalidateQueries({ queryKey: ["all-sub-categories"] })
         toast.success("Sub Category deleted successfully")
       }
@@ -48,15 +54,50 @@ export default function SubCategorySheet() {
     onError: (error) => toast.error(error.message)
   })
 
-  const handleClose = async (isSuccess: boolean) => {
-    if (isSuccess) await queryClient.invalidateQueries({ queryKey: subCategoriesQueryKey })
-    setIsDialogOpen(false)
+  // Load sub-category data when edit mode is active
+  useEffect(() => {
+    if (showSubCategoryForm && subCategoryId && subCategories?.results) {
+      const subCategory = (subCategories.results as SubCategoryFormData[]).find(
+        (cat) => cat.id === subCategoryId
+      )
+      if (subCategory) {
+        setSelectedSubCategory(subCategory)
+      }
+    } else if (showSubCategoryForm && !subCategoryId) {
+      setSelectedSubCategory(null)
+    }
+  }, [showSubCategoryForm, subCategoryId, subCategories])
+
+  const handleClose = async (isSuccess: boolean = false) => {
+    if (isSuccess) {
+      // Invalidate all sub-category queries, not just the specific one
+      await queryClient.invalidateQueries({ queryKey: ["sub-categories"] })
+      await queryClient.invalidateQueries({ queryKey: ["all-sub-categories"] })
+    }
+    // Clear URL params
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("subcategory")
+    params.delete("id")
+    const queryString = params.toString()
+    router.push(`${pathname}${queryString ? `?${queryString}` : ""}`)
     setSelectedSubCategory(null)
   }
 
-  const handleEdit = (category: SubCategoryFormData) => {
-    setIsDialogOpen(true)
-    setSelectedSubCategory(category)
+  const handleEdit = (subCategory: SubCategoryFormData) => {
+    // Set the sub-category immediately so form can populate
+    setSelectedSubCategory(subCategory)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("subcategory", "edit")
+    if (subCategory.id) {
+      params.set("id", subCategory.id)
+    }
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleAddSubCategory = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("subcategory", "add")
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   const handlePaginationChange = (pageIndex: number, pageSize: number) => {
@@ -78,33 +119,35 @@ export default function SubCategorySheet() {
         action={{
           label: "Add Sub Category",
           icon: <PlusCircle />,
-          onClick: () => setIsDialogOpen(true),
+          onClick: handleAddSubCategory,
         }}
       />
-      <AdvancedTable<SubCategoryFormData>
-        columns={getColumns(handleEdit, handleDelete)}
-        data={(subCategories?.results as SubCategoryFormData[]) || []}
-        searchPlaceholder="by name"
-        searchColumn="name"
-        isLoading={isLoading}
-        loadingSkeleton={
-          <TableSkeleton columns={3} rows={2} />
-        }
-        totalCount={subCategories?.count || 0}
-        pageSize={paginationState.pageSize}
-        pageIndex={paginationState.pageIndex}
-        onPaginationChange={handlePaginationChange}
-        serverPagination={true}
-        serverSearch={true}
-        searchValue={searchTerm}
-        onSearchChange={handleSearchChange}
-      />
-
-      <UpsertSubCategory
-        isOpen={isDialogOpen}
-        selectedSubCategory={selectedSubCategory}
-        onClose={handleClose}
-      />
+      
+      {showSubCategoryForm ? (
+        <UpsertSubCategorySection
+          selectedSubCategory={selectedSubCategory}
+          onClose={handleClose}
+        />
+      ) : (
+        <AdvancedTable<SubCategoryFormData>
+          columns={getColumns(handleEdit, handleDelete)}
+          data={(subCategories?.results as SubCategoryFormData[]) || []}
+          searchPlaceholder="by name"
+          searchColumn="name"
+          isLoading={isLoading}
+          loadingSkeleton={
+            <TableSkeleton columns={3} rows={2} />
+          }
+          totalCount={subCategories?.count || 0}
+          pageSize={paginationState.pageSize}
+          pageIndex={paginationState.pageIndex}
+          onPaginationChange={handlePaginationChange}
+          serverPagination={true}
+          serverSearch={true}
+          searchValue={searchTerm}
+          onSearchChange={handleSearchChange}
+        />
+      )}
     </div>
   )
 }
