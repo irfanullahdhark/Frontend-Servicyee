@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
         },
         {
           protocol: 'http',
-          hostname: '192.168.137.210',
+          hostname: '192.168.137.48',
           port: '8005',
         },
         {
