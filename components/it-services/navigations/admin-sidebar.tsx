@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Calendar, Home, Inbox, Search, Settings, ChevronDown, ChevronRight, Users, Layers, LayoutGrid } from "lucide-react"
+import { Calendar, Home, Inbox, Search, Settings, ChevronDown, ChevronRight, Layers, LayoutGrid, Monitor } from "lucide-react"
 
 import {
   Sidebar,
@@ -45,11 +45,11 @@ const navItems = [
     ],
   },
   {
-    title: "Employers",
+    title: "Service",
     url: "#",
-    icon: Users,
+    icon: Monitor,
     items: [
-      { title: "List", url: "#" },
+      { title: "Service Metadata", url: "/it-services/admin/service/metadata/" },
       { title: "Approvals", url: "#" },
     ],
   },

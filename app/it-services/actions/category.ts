@@ -12,6 +12,7 @@ const CATEGORY_LIST_URL = `${BASE_URL}/api/v1/category-list/`
 const SUB_CATEGORY_URL = `${BASE_URL}/api/v1/subcategory/`
 const SERVICE_TYPE_URL = `${BASE_URL}/api/v1/service-type/`
 const SUBCATEGORY_LIST_URL = `${BASE_URL}/api/v1/subcategory-list/`
+const SERVICE_TYPE_LIST_URL = `${BASE_URL}/api/v1/service-type-list/`
 
 
 
@@ -193,6 +194,19 @@ export const deleteSubCategory = async (id:string) =>
 }
 
 
+
+
+export const getPublicServiceTypes = async (subcategoryId: string, limit: number, offset: number, search?: string): Promise<CategoryResponse> =>
+{
+    let params = `?subcategory_id=${subcategoryId}&limit=${limit}&offset=${offset}`
+    if (search) params += `&search=${encodeURIComponent(search)}`
+    const response = await fetch(SERVICE_TYPE_LIST_URL + params, { cache: 'no-store' })
+    if (!response.ok) {
+        throw new Error(await response.json().then(data => data.detail));
+        }
+    const json = await response.json()
+    return json;
+}
 
 export const getServiceTypes = async <T>(page: number, pageSize: number, search?: string) => {
     const params = `?page=${page + 1}&page_size=${pageSize}&search=${encodeURIComponent(search ?? "")}`
