@@ -56,7 +56,9 @@ export default function ServiceTypeForm({
     if (selectedServiceType) {
       form.reset({
         id: selectedServiceType.id || "",
-        subcategory: selectedServiceType.subcategory || "",
+        subcategory: typeof selectedServiceType.subcategory === "object" && selectedServiceType.subcategory !== null
+          ? (selectedServiceType.subcategory as { id: string }).id
+          : (selectedServiceType.subcategory || ""),
         name: selectedServiceType.name || "",
       });
     } else {
